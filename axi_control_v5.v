@@ -5,7 +5,7 @@
 // `define CACHELINE_WIDTH 256 // 块宽
 module axi_control_v5(
     input wire clk,
-    input wire rstn,
+    input wire rst,
 
     // icache interface
     input wire icache_ren, // miss
@@ -108,7 +108,7 @@ module axi_control_v5(
     reg [`STAGE_WIDTH-1:0] stage;
     reg [`STAGE_WIDTH-1:0] stage_w;
     always @ (posedge clk) begin
-        if (!rstn) begin
+        if (rst) begin
             arid <= 4'b0000;
             araddr <= 32'b0;
             arlen <= 4'b0000;
@@ -295,7 +295,7 @@ module axi_control_v5(
     end
 
     always @ (posedge clk) begin
-        if (!rstn) begin
+        if (rst) begin
             awid <= 4'b0001;
             awaddr <= 32'b0;
             awlen <= 4'b0000;
