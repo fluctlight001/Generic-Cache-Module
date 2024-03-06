@@ -32,7 +32,7 @@ module cache
         .rst        (rst             ),
         .flush      (1'b0            ),
         .stallreq   (stallreq        ),
-        .cached     (1'b1            ),
+        .cached     (cached          ),
         .sram_en    (sram_en         ),
         .sram_we    (sram_we         ),
         .sram_addr  (sram_addr       ),
