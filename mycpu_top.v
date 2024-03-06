@@ -67,25 +67,59 @@ module mycpu_top(
 
     wire inst_cached, data_cached;
     wire [31:0] inst_sram_addr_o,data_sram_addr_o;
+
+    
+
+    // cache_top
+    wire icache_refresh, dcache_refresh;
+    wire icache_miss, dcache_miss;
+    wire [31:0] icache_raddr, dcache_raddr;
+    wire icache_write_back, dcache_write_back;
+    wire [31:0] icache_waddr, dcache_waddr;
+    wire [`CACHELINE_WIDTH-1:0] icache_cacheline_old, dcache_cacheline_old;
+    wire [`CACHELINE_WIDTH-1:0] icache_cacheline_new, dcache_cacheline_new;
+
+    // uncache
+    wire        uncache_refresh;
+    wire        uncache_en;
+    wire [3:0]  uncache_wen;
+    wire [31:0] uncache_addr;
+    wire [31:0] uncache_wdata;
+    wire [31:0] uncache_rdata;
+    wire        uncache_hit;
+
+    wire [31:0] dcache_temp_rdata;
+    wire [31:0] uncache_temp_rdata;
+
+    wire stallreq_outside;
+    wire stallreq_icache;
+    wire stallreq_dcache;
+    wire stallreq_uncache;
+
+    assign stallreq_outside = stallreq_icache | stallreq_dcache | stallreq_uncache;
     mycpu_core u_mycpu_core(
-        .clk               (clk               ),
-        .rst               (rst               ),
-        .int               (ext_int           ),
-        .inst_sram_en      (inst_sram_en      ),
-        .inst_sram_wen     (inst_sram_wen     ),
-        .inst_sram_addr    (inst_sram_addr_o  ),
-        .inst_sram_wdata   (inst_sram_wdata   ),
-        .inst_sram_rdata   (inst_sram_rdata   ),
-        .data_sram_en      (data_sram_en      ),
-        .data_sram_wen     (data_sram_wen     ),
-        .data_sram_addr    (data_sram_addr_o  ),
-        .data_sram_wdata   (data_sram_wdata   ),
-        .data_sram_rdata   (data_sram_rdata   ),
-        .debug_wb_pc       (debug_wb_pc       ),
-        .debug_wb_rf_wen   (debug_wb_rf_wen   ),
-        .debug_wb_rf_wnum  (debug_wb_rf_wnum  ),
-        .debug_wb_rf_wdata (debug_wb_rf_wdata ),
-        .stallreq_from_outside(1'b0)
+        .clk                    (clk               ),
+        .rst                    (rst               ),
+        .int                    (ext_int           ),
+
+        .inst_sram_en           (inst_sram_en      ),
+        .inst_sram_wen          (inst_sram_wen     ),
+        .inst_sram_addr         (inst_sram_addr_o  ),
+        .inst_sram_wdata        (inst_sram_wdata   ),
+        .inst_sram_rdata        (inst_sram_rdata   ),
+
+        .data_sram_en           (data_sram_en      ),
+        .data_sram_wen          (data_sram_wen     ),
+        .data_sram_addr         (data_sram_addr_o  ),
+        .data_sram_wdata        (data_sram_wdata   ),
+        .data_sram_rdata        (data_sram_rdata   ),
+
+        .debug_wb_pc            (debug_wb_pc       ),
+        .debug_wb_rf_wen        (debug_wb_rf_wen   ),
+        .debug_wb_rf_wnum       (debug_wb_rf_wnum  ),
+        .debug_wb_rf_wdata      (debug_wb_rf_wdata ),
+
+        .stallreq_from_outside  (stallreq_outside)
     );
 
     mmu u0_mmu(
@@ -99,50 +133,71 @@ module mycpu_top(
         .addr_o  (data_sram_addr    ),
         .cache_v (data_cached       )
     );
+ 
+    cache u_icache(
+        .clk           (clk           ),
+        .rst           (rst           ),
+        .sram_en       (inst_sram_en       ),
+        .sram_wen      (inst_sram_wen      ),
+        .sram_addr     (inst_sram_addr     ),
+        .sram_wdata    (inst_sram_wdata    ),
+        .refresh       (icache_refresh     ),
+        .cached        (inst_cached        ),
+        .cacheline_new (icache_cacheline_new ),
 
-    wire icache_refresh, dcache_refresh;
-    wire icache_miss, dcache_miss;
-    wire [31:0] icache_axi_raddr, dcache_axi_raddr;
-    wire icache_write_back, dcache_write_back;
-    wire [31:0] icache_axi_waddr, dcache_axi_waddr;
-    wire [`CACHELINE_WIDTH-1:0] icache_cacheline_old, dcache_cacheline_old;
-    wire [`CACHELINE_WIDTH-1:0] icache_cacheline_new, dcache_cacheline_new;
+        .stallreq      (stallreq_icache      ),
+        .sram_rdata    (inst_sram_rdata    ),
+        .miss          (icache_miss          ),
+        .raddr         (icache_raddr         ),
+        .waddr         (icache_waddr         ),
+        .write_back    (icache_write_back    ),
+        .cacheline_old (icache_cacheline_old )
+    );
 
-    cache_top u_cache_top(
-        .clk                  (clk                  ),
-        .rst                  (rst                  ),
-        .flush                (flush                ),
-        .stallreq             (stallreq             ),
-        .inst_cached          (inst_cached          ),
-        .inst_sram_en         (inst_sram_en         ),
-        .inst_sram_wen        (inst_sram_wen        ),
-        .inst_sram_addr       (inst_sram_addr       ),
-        .inst_sram_wdata      (inst_sram_wdata      ),
-        .inst_sram_rdata      (inst_sram_rdata      ),
-        .icache_refresh       (icache_refresh       ),
-        .icache_miss          (icache_miss          ),
-        .icache_axi_raddr     (icache_axi_raddr     ),
-        .icache_write_back    (icache_write_back    ),
-        .icache_axi_waddr     (icache_axi_waddr     ),
-        .icache_cacheline_old (icache_cacheline_old ),
-        .icache_cacheline_new (icache_cacheline_new ),
-        .data_cached          (data_cached          ),
-        .data_sram_en         (data_sram_en         ),
-        .data_sram_wen        (data_sram_wen        ),
-        .data_sram_addr       (data_sram_addr       ),
-        .data_sram_wdata      (data_sram_wdata      ),
-        .data_sram_rdata      (data_sram_rdata      ),
-        .dcache_refresh       (dcache_refresh       ),
-        .dcache_miss          (dcache_miss          ),
-        .dcache_axi_raddr     (dcache_axi_raddr     ),
-        .dcache_write_back    (dcache_write_back    ),
-        .dcache_axi_waddr     (dcache_axi_waddr     ),
-        .dcache_cacheline_old (dcache_cacheline_old ),
-        .dcache_cacheline_new (dcache_cacheline_new )
+    cache u_dcache(
+        .clk           (clk           ),
+        .rst           (rst           ),
+        .sram_en       (data_sram_en       ),
+        .sram_wen      (data_sram_wen      ),
+        .sram_addr     (data_sram_addr     ),
+        .sram_wdata    (data_sram_wdata    ),
+        .refresh       (dcache_refresh       ),
+        .cached        (data_cached        ),
+        .cacheline_new (dcache_cacheline_new ),
+
+        .stallreq      (stallreq_dcache      ),
+        .sram_rdata    (dcache_temp_rdata    ),
+        .miss          (dcache_miss          ),
+        .raddr         (dcache_raddr         ),
+        .waddr         (dcache_waddr         ),
+        .write_back    (dcache_write_back    ),
+        .cacheline_old (dcache_cacheline_old )
     );
     
 
-
+    reg data_cached_r;
+    always @ (posedge clk) begin
+        data_cached_r <= data_cached;
+    end
+    assign data_sram_rdata = data_cached_r ? dcache_temp_rdata : uncache_temp_rdata;
+    
+    
+    uncache u_uncache(
+        .clk        (clk                        ),
+        .rst        (rst                        ),
+        .stallreq   (stallreq_uncache      ),
+        .conf_en    (data_sram_en & ~data_cached),
+        .conf_wen   (data_sram_wen              ),
+        .conf_addr  (data_sram_addr             ),
+        .conf_wdata (data_sram_wdata            ),
+        .conf_rdata (uncache_temp_rdata         ), 
+        .axi_en     (uncache_en                 ),
+        .axi_wsel   (uncache_wen                ),
+        .axi_addr   (uncache_addr               ),
+        .axi_wdata  (uncache_wdata              ),
+        .reload     (uncache_refresh            ),
+        .axi_rdata  (uncache_rdata              )
+    );
     
     axi_control_v5 u_axi_control_v5(
         .clk                  (clk                  ),
@@ -151,7 +206,7 @@ module mycpu_top(
         .icache_ren           (icache_miss          ),
         .icache_raddr         (icache_raddr         ),
         .icache_cacheline_new (icache_cacheline_new ),
-        .icache_wen           (1'b0           ),
+        .icache_wen           (icache_write_back    ),
         .icache_waddr         (icache_waddr         ),
         .icache_cacheline_old (icache_cacheline_old ),
         .icache_refresh       (icache_refresh       ),

@@ -6,7 +6,7 @@
 // `define VIRTUAL_UART_ADDR 32'h1faf_fff0
 module uncache(
     input wire clk,
-    input wire resetn,
+    input wire rst,
     output wire stallreq,
 
     input wire conf_en,
@@ -35,7 +35,7 @@ module uncache(
 
     assign stallreq = conf_rd_req & ~valid | conf_wr_req & buffer_valid & ~valid | stage[3];
     always @ (posedge clk) begin
-        if (!resetn) begin
+        if (rst) begin
             valid <= 1'b0;
         end
         else if (finish) begin
@@ -54,7 +54,7 @@ module uncache(
     // assign wr_data = conf_wdata;
 
     always @ (posedge clk) begin
-        if (!resetn) begin
+        if (rst) begin
             conf_rdata <= 32'b0;
         end
         else if (reload) begin
@@ -63,7 +63,7 @@ module uncache(
     end
 
     always @ (posedge clk) begin
-        if (!resetn) begin
+        if (rst) begin
             buffer_valid <= 1'b0;
 
             stage <= `STAGE_WD'b1;
