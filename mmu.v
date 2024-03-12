@@ -1,4 +1,4 @@
-`include "defines.vh"
+`include "def_cache.vh"
 module mmu (
     input wire[31:0] addr_i,
     output wire [31:0] addr_o,

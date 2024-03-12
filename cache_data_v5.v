@@ -1,4 +1,4 @@
-`include "defines.vh"
+`include "def_cache.vh"
 
 module cache_data_v5(
     input wire clk,

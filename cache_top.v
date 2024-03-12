@@ -1,4 +1,4 @@
-`include "defines.vh"
+`include "def_cache.vh"
 module cache_top(
     input wire clk,
     input wire rst,

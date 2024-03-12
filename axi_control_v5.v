@@ -1,4 +1,4 @@
-`include "defines.vh"
+`include "def_cache.vh"
 `define STAGE_WIDTH 12
 // `define TAG_WIDTH 20
 // `define INDEX_WIDTH 128 // 块高

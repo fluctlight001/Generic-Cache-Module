@@ -1,4 +1,4 @@
-`include "defines.vh"
+`include "def_cache.vh"
 module mycpu_top(
     input wire aclk,
     input wire aresetn,

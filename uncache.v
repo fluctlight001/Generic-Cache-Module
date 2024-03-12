@@ -1,4 +1,4 @@
-`include "defines.vh"
+`include "def_cache.vh"
 `define STAGE_WD 4
 `define WAIT 4'b1000
 `define IDLE 4'b0001
