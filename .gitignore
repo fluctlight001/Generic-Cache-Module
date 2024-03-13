@@ -1,0 +1,3 @@
+# 忽略 data_bram_bank 目录下除了 .xci 文件外的所有文件和子目录
+data_bram_bank/*
+!data_bram_bank/*.xci
