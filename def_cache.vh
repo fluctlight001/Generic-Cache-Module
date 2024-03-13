@@ -1,4 +1,4 @@
-`default_nettype none
+// `default_nettype none
 // cache
 `define TAG_WIDTH 21    // tag + v
 `define INDEX_WIDTH 64 // 块高  // depth

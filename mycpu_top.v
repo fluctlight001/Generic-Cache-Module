@@ -142,7 +142,7 @@ module mycpu_top(
         .sram_addr     (inst_sram_addr     ),
         .sram_wdata    (inst_sram_wdata    ),
         .refresh       (icache_refresh     ),
-        .cached        (inst_cached        ),
+        .cached        (1'b1               ),
         .cacheline_new (icache_cacheline_new ),
 
         .stallreq      (stallreq_icache      ),

@@ -1,3 +1,4 @@
+`include "def_cache.vh"
 module cache
 #(
     parameter HIT_WD       = 2,
@@ -13,7 +14,7 @@ module cache
     input wire  [31:0] sram_wdata,
     input wire         refresh,
     input wire         cached,
-    input  [CACHELINE_WD -1:0] cacheline_new,
+    input wire  [CACHELINE_WD -1:0] cacheline_new,
     
     output wire        stallreq,
     output wire [31:0] sram_rdata,
@@ -34,7 +35,7 @@ module cache
         .stallreq   (stallreq        ),
         .cached     (cached          ),
         .sram_en    (sram_en         ),
-        .sram_we    (sram_we         ),
+        .sram_wen   (sram_wen        ),
         .sram_addr  (sram_addr       ),
         .refresh    (refresh         ),
         .miss       (miss            ),
@@ -53,7 +54,7 @@ module cache
         .lru           (lru          ),
         .cached        (cached       ),
         .sram_en       (sram_en      ),
-        .sram_we       (sram_we      ),
+        .sram_wen      (sram_wen     ),
         .sram_addr     (sram_addr    ),
         .sram_wdata    (sram_wdata   ),
         .sram_rdata    (sram_rdata   ),
